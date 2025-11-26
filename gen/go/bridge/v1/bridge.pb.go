@@ -197,8 +197,10 @@ func (x *Payload) GetAudio() *AudioPayload {
 
 type ErrorPayload struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`                           // Numeric error code for programmatic handling
+	ErrorCode     string                 `protobuf:"bytes,2,opt,name=error_code,json=errorCode,proto3" json:"error_code,omitempty"` // String error code for debugging
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`                      // Human-readable error message
+	Details       string                 `protobuf:"bytes,4,opt,name=details,proto3" json:"details,omitempty"`                      // Optional additional details
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -233,9 +235,16 @@ func (*ErrorPayload) Descriptor() ([]byte, []int) {
 	return file_bridge_v1_bridge_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *ErrorPayload) GetCode() string {
+func (x *ErrorPayload) GetCode() int32 {
 	if x != nil {
 		return x.Code
+	}
+	return 0
+}
+
+func (x *ErrorPayload) GetErrorCode() string {
+	if x != nil {
+		return x.ErrorCode
 	}
 	return ""
 }
@@ -243,6 +252,13 @@ func (x *ErrorPayload) GetCode() string {
 func (x *ErrorPayload) GetMessage() string {
 	if x != nil {
 		return x.Message
+	}
+	return ""
+}
+
+func (x *ErrorPayload) GetDetails() string {
+	if x != nil {
+		return x.Details
 	}
 	return ""
 }
@@ -970,10 +986,13 @@ const file_bridge_v1_bridge_proto_rawDesc = "" +
 	"\ais_last\x18\x04 \x01(\bR\x06isLast\"d\n" +
 	"\aPayload\x12*\n" +
 	"\x04text\x18\x01 \x01(\v2\x16.bridge.v1.TextPayloadR\x04text\x12-\n" +
-	"\x05audio\x18\x02 \x01(\v2\x17.bridge.v1.AudioPayloadR\x05audio\"<\n" +
+	"\x05audio\x18\x02 \x01(\v2\x17.bridge.v1.AudioPayloadR\x05audio\"u\n" +
 	"\fErrorPayload\x12\x12\n" +
-	"\x04code\x18\x01 \x01(\tR\x04code\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\x94\x03\n" +
+	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x1d\n" +
+	"\n" +
+	"error_code\x18\x02 \x01(\tR\terrorCode\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12\x18\n" +
+	"\adetails\x18\x04 \x01(\tR\adetails\"\x94\x03\n" +
 	"\aMessage\x12\x18\n" +
 	"\aversion\x18\x01 \x01(\tR\aversion\x12\x12\n" +
 	"\x04kind\x18\x02 \x01(\tR\x04kind\x12\x16\n" +
