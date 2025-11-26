@@ -1,0 +1,103 @@
+syntax = "proto3";
+
+package bridge.v1;
+
+option go_package = "gga-transport-lib/gen/go/bridge/v1;bridgepb";
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+message TextPayload {
+  string content = 1;
+  string mime_type = 2;
+}
+
+message AudioPayload {
+  string codec = 1;
+  int64 seq = 2;
+  string data = 3;
+  bool is_last = 4;
+}
+
+message Payload {
+  TextPayload text = 1;
+  AudioPayload audio = 2;
+}
+
+message ErrorPayload {
+  int32 code = 1;          // Numeric error code for programmatic handling
+  string error_code = 2;   // String error code for debugging
+  string message = 3;      // Human-readable error message
+  string details = 4;      // Optional additional details
+}
+
+message Message {
+  string version = 1;
+  string kind = 2;
+  string action = 3;
+  string request_id = 4;
+  string conversation_id = 5;
+  Payload payload = 6;
+  google.protobuf.Struct metadata = 7;
+  ErrorPayload error = 8;
+  google.protobuf.Timestamp timestamp = 9;
+  google.protobuf.Struct extras = 10;
+}
+
+message TransportEnvelope {
+  string connection_id = 1;
+  int64 user_id = 2;
+  string node_id = 3;
+  Message message = 4;
+  string trace_id = 5;
+  map<string, string> attributes = 6;
+  google.protobuf.Timestamp created_at = 7;
+  repeated string target_connection_ids = 8;
+  repeated int64 target_user_ids = 9;
+}
+
+message RegisterFrame {
+  string node_id = 1;
+  string namespace = 2;
+}
+
+message IngressFrame {
+  TransportEnvelope envelope = 1;
+}
+
+message DeliverFrame {
+  TransportEnvelope envelope = 1;
+}
+
+message BroadcastFrame {
+  TransportEnvelope envelope = 1;
+}
+
+message AckFrame {
+  string message_id = 1;
+}
+
+message HeartbeatFrame {
+  string nonce = 1;
+}
+
+message StreamRequest {
+  oneof payload {
+    RegisterFrame register = 1;
+    IngressFrame ingress = 2;
+    AckFrame ack = 3;
+    HeartbeatFrame heartbeat = 4;
+  }
+}
+
+message StreamResponse {
+  oneof payload {
+    DeliverFrame deliver = 1;
+    BroadcastFrame broadcast = 2;
+    HeartbeatFrame heartbeat = 3;
+  }
+}
+
+service SidecarBridge {
+  rpc Stream(stream StreamRequest) returns (stream StreamResponse);
+}

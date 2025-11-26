@@ -1,0 +1,68 @@
+name: Generate Protobuf Code
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'proto/**/*.proto'
+  pull_request:
+    paths:
+      - 'proto/**/*.proto'
+  workflow_dispatch:
+
+jobs:
+  generate:
+    name: Generate Go code from Proto
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.3'
+          cache: true
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: '25.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Go Protobuf plugins
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+      - name: Generate Protobuf code
+        run: |
+          chmod +x scripts/generate.sh
+          ./scripts/generate.sh
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          git diff --exit-code gen/ || echo "has_changes=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push generated code
+        if: steps.check_changes.outputs.has_changes == 'true' && github.event_name == 'push'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add gen/
+          git commit -m "chore: regenerate protobuf code [skip ci]"
+          git push
+
+      - name: Upload generated files (for PR)
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-proto-code
+          path: gen/
+          retention-days: 7
