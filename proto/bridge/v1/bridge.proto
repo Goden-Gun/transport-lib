@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package bridge.v1;
 
-option go_package = "gga-transport-lib/gen/go/bridge/v1;bridgepb";
+option go_package = "github.com/Goden-Gun/transport-lib/gen/go/bridge/v1;bridgepb";
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
@@ -25,10 +25,8 @@ message Payload {
 }
 
 message ErrorPayload {
-  int32 code = 1;          // Numeric error code for programmatic handling
-  string error_code = 2;   // String error code for debugging
-  string message = 3;      // Human-readable error message
-  string details = 4;      // Optional additional details
+  string code = 1;
+  string message = 2;
 }
 
 message Message {

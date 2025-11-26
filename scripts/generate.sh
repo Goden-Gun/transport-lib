@@ -51,9 +51,9 @@ echo -e "${GREEN}生成 Go 代码...${NC}"
 protoc \
     --proto_path="${PROTO_DIR}" \
     --go_out="${GEN_DIR}" \
-    --go_opt=module=gga-transport-lib/gen/go \
+    --go_opt=module=github.com/Goden-Gun/transport-lib/gen/go \
     --go-grpc_out="${GEN_DIR}" \
-    --go-grpc_opt=module=gga-transport-lib/gen/go \
+    --go-grpc_opt=module=github.com/Goden-Gun/transport-lib/gen/go \
     "${PROTO_DIR}/bridge/v1/bridge.proto"
 
 echo -e "${GREEN}✓ Protobuf 代码生成完成！${NC}"

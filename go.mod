@@ -1,4 +1,4 @@
-module gga-transport-lib
+module github.com/Goden-Gun/transport-lib
 
 go 1.25.3
 
@@ -8,7 +8,6 @@ require (
 )
 
 require (
-	github.com/google/go-cmp v0.7.0 // indirect
 	golang.org/x/net v0.46.1-0.20251013234738-63d1a5100f82 // indirect
 	golang.org/x/sys v0.37.0 // indirect
 	golang.org/x/text v0.30.0 // indirect
