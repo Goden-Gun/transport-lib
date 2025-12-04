@@ -75,6 +75,7 @@ message DeliverFrame {
 
 message BroadcastFrame {
   TransportEnvelope envelope = 1;
+  string broadcast_id = 2;
 }
 
 message AckFrame {

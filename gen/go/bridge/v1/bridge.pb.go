@@ -662,6 +662,7 @@ func (x *DeliverFrame) GetEnvelope() *TransportEnvelope {
 type BroadcastFrame struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Envelope      *TransportEnvelope     `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`
+	BroadcastId   string                 `protobuf:"bytes,2,opt,name=broadcast_id,json=broadcastId,proto3" json:"broadcast_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -701,6 +702,13 @@ func (x *BroadcastFrame) GetEnvelope() *TransportEnvelope {
 		return x.Envelope
 	}
 	return nil
+}
+
+func (x *BroadcastFrame) GetBroadcastId() string {
+	if x != nil {
+		return x.BroadcastId
+	}
+	return ""
 }
 
 type AckFrame struct {
@@ -1065,9 +1073,10 @@ const file_bridge_v1_bridge_proto_rawDesc = "" +
 	"\fIngressFrame\x128\n" +
 	"\benvelope\x18\x01 \x01(\v2\x1c.bridge.v1.TransportEnvelopeR\benvelope\"H\n" +
 	"\fDeliverFrame\x128\n" +
-	"\benvelope\x18\x01 \x01(\v2\x1c.bridge.v1.TransportEnvelopeR\benvelope\"J\n" +
+	"\benvelope\x18\x01 \x01(\v2\x1c.bridge.v1.TransportEnvelopeR\benvelope\"m\n" +
 	"\x0eBroadcastFrame\x128\n" +
-	"\benvelope\x18\x01 \x01(\v2\x1c.bridge.v1.TransportEnvelopeR\benvelope\")\n" +
+	"\benvelope\x18\x01 \x01(\v2\x1c.bridge.v1.TransportEnvelopeR\benvelope\x12!\n" +
+	"\fbroadcast_id\x18\x02 \x01(\tR\vbroadcastId\")\n" +
 	"\bAckFrame\x12\x1d\n" +
 	"\n" +
 	"message_id\x18\x01 \x01(\tR\tmessageId\"&\n" +
