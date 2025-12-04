@@ -12,7 +12,7 @@ type Client interface {
 	Start(ctx context.Context) error
 	PublishIngress(ctx context.Context, env envelope.TransportEnvelope) error
 	SubscribeDeliver(ctx context.Context) (<-chan *Delivery, error)
-	SubscribeBroadcast(ctx context.Context) (<-chan envelope.TransportEnvelope, error)
+	SubscribeBroadcast(ctx context.Context) (<-chan *BroadcastDelivery, error)
 	Drain(ctx context.Context) error
 	Close() error
 }
@@ -50,9 +50,10 @@ type RegisterMeta struct {
 
 // Ack models acknowledgement semantics.
 type Ack struct {
-	MessageID string
-	Status    string
-	Reason    string
+	MessageID   string
+	BroadcastID string
+	Status      string
+	Reason      string
 }
 
 // Options define bridge runtime parameters.

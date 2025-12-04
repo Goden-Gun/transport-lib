@@ -714,6 +714,7 @@ func (x *BroadcastFrame) GetBroadcastId() string {
 type AckFrame struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	MessageId     string                 `protobuf:"bytes,1,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
+	BroadcastId   string                 `protobuf:"bytes,2,opt,name=broadcast_id,json=broadcastId,proto3" json:"broadcast_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -751,6 +752,13 @@ func (*AckFrame) Descriptor() ([]byte, []int) {
 func (x *AckFrame) GetMessageId() string {
 	if x != nil {
 		return x.MessageId
+	}
+	return ""
+}
+
+func (x *AckFrame) GetBroadcastId() string {
+	if x != nil {
+		return x.BroadcastId
 	}
 	return ""
 }
@@ -1076,10 +1084,11 @@ const file_bridge_v1_bridge_proto_rawDesc = "" +
 	"\benvelope\x18\x01 \x01(\v2\x1c.bridge.v1.TransportEnvelopeR\benvelope\"m\n" +
 	"\x0eBroadcastFrame\x128\n" +
 	"\benvelope\x18\x01 \x01(\v2\x1c.bridge.v1.TransportEnvelopeR\benvelope\x12!\n" +
-	"\fbroadcast_id\x18\x02 \x01(\tR\vbroadcastId\")\n" +
+	"\fbroadcast_id\x18\x02 \x01(\tR\vbroadcastId\"L\n" +
 	"\bAckFrame\x12\x1d\n" +
 	"\n" +
-	"message_id\x18\x01 \x01(\tR\tmessageId\"&\n" +
+	"message_id\x18\x01 \x01(\tR\tmessageId\x12!\n" +
+	"\fbroadcast_id\x18\x02 \x01(\tR\vbroadcastId\"&\n" +
 	"\x0eHeartbeatFrame\x12\x14\n" +
 	"\x05nonce\x18\x01 \x01(\tR\x05nonce\"\xeb\x01\n" +
 	"\rStreamRequest\x126\n" +

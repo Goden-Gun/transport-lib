@@ -148,7 +148,7 @@ func (svc *bridgeService) Stream(stream bridgepb.SidecarBridge_StreamServer) err
 			}
 		case *bridgepb.StreamRequest_Ack:
 			if payload.Ack != nil {
-				ack := Ack{MessageID: payload.Ack.MessageId}
+				ack := Ack{MessageID: payload.Ack.MessageId, BroadcastID: payload.Ack.BroadcastId}
 				if err := svc.handler.OnAck(ctx, sess, ack); err != nil {
 					return err
 				}

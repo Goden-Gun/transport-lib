@@ -37,3 +37,32 @@ func (d *Delivery) Ack(ctx context.Context) error {
 	})
 	return d.ackErr
 }
+
+// BroadcastDelivery wraps a broadcast envelope that expects ACK.
+type BroadcastDelivery struct {
+	Envelope    *envelope.TransportEnvelope
+	BroadcastID string
+
+	ackFn func(context.Context) error
+
+	ackOnce sync.Once
+	ackErr  error
+}
+
+func newBroadcastDelivery(env *envelope.TransportEnvelope, broadcastID string, ackFn func(context.Context) error) *BroadcastDelivery {
+	return &BroadcastDelivery{Envelope: env, BroadcastID: broadcastID, ackFn: ackFn}
+}
+
+// Ack confirms the broadcast delivery back to the bridge server.
+func (d *BroadcastDelivery) Ack(ctx context.Context) error {
+	if d == nil || d.ackFn == nil {
+		return nil
+	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	d.ackOnce.Do(func() {
+		d.ackErr = d.ackFn(ctx)
+	})
+	return d.ackErr
+}

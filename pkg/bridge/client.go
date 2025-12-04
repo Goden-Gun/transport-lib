@@ -27,7 +27,7 @@ type client struct {
 	opts Options
 
 	deliverCh   chan *Delivery
-	broadcastCh chan envelope.TransportEnvelope
+	broadcastCh chan *BroadcastDelivery
 
 	conn      *grpc.ClientConn
 	stream    bridgepb.SidecarBridge_StreamClient
@@ -72,7 +72,7 @@ func NewClient(opts Options) (Client, error) {
 	c := &client{
 		opts:        opts,
 		deliverCh:   make(chan *Delivery, opts.DeliverBuffer),
-		broadcastCh: make(chan envelope.TransportEnvelope, opts.BroadcastBuffer),
+		broadcastCh: make(chan *BroadcastDelivery, opts.BroadcastBuffer),
 	}
 	if opts.EnableBackpressure && opts.MaxInFlightDeliver > 0 {
 		c.inflight = make(chan struct{}, opts.MaxInFlightDeliver)
@@ -213,7 +213,7 @@ func (c *client) consume(ctx context.Context) {
 					if messageID == "" {
 						return nil
 					}
-					return c.sendAck(ctx, messageID)
+					return c.sendAck(ctx, messageID, "")
 				})
 				select {
 				case c.deliverCh <- delivery:
@@ -223,7 +223,19 @@ func (c *client) consume(ctx context.Context) {
 			}
 		case *bridgepb.StreamResponse_Broadcast:
 			if payload.Broadcast != nil && payload.Broadcast.Envelope != nil {
-				c.broadcastCh <- *payload.Broadcast.Envelope
+				env := payload.Broadcast.Envelope
+				broadcastID := payload.Broadcast.GetBroadcastId()
+				delivery := newBroadcastDelivery(env, broadcastID, func(ctx context.Context) error {
+					if broadcastID == "" {
+						return nil
+					}
+					return c.sendAck(ctx, "", broadcastID)
+				})
+				select {
+				case c.broadcastCh <- delivery:
+				case <-ctx.Done():
+					return
+				}
 			}
 		case *bridgepb.StreamResponse_Heartbeat:
 			// no-op
@@ -258,7 +270,7 @@ func (c *client) SubscribeDeliver(context.Context) (<-chan *Delivery, error) {
 	return c.deliverCh, nil
 }
 
-func (c *client) SubscribeBroadcast(context.Context) (<-chan envelope.TransportEnvelope, error) {
+func (c *client) SubscribeBroadcast(context.Context) (<-chan *BroadcastDelivery, error) {
 	return c.broadcastCh, nil
 }
 
@@ -342,8 +354,8 @@ func (c *client) sendHeartbeat(ctx context.Context) {
 	c.sendMu.Unlock()
 }
 
-func (c *client) sendAck(ctx context.Context, messageID string) error {
-	if messageID == "" {
+func (c *client) sendAck(ctx context.Context, messageID, broadcastID string) error {
+	if messageID == "" && broadcastID == "" {
 		return nil
 	}
 	if ctx == nil {
@@ -356,7 +368,7 @@ func (c *client) sendAck(ctx context.Context, messageID string) error {
 	}
 	req := &bridgepb.StreamRequest{
 		Payload: &bridgepb.StreamRequest_Ack{
-			Ack: &bridgepb.AckFrame{MessageId: messageID},
+			Ack: &bridgepb.AckFrame{MessageId: messageID, BroadcastId: broadcastID},
 		},
 	}
 	c.sendMu.Lock()

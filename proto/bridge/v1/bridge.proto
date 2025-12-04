@@ -80,6 +80,7 @@ message BroadcastFrame {
 
 message AckFrame {
   string message_id = 1;
+  string broadcast_id = 2;
 }
 
 message HeartbeatFrame {
