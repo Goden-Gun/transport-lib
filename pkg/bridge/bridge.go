@@ -11,7 +11,7 @@ import (
 type Client interface {
 	Start(ctx context.Context) error
 	PublishIngress(ctx context.Context, env envelope.TransportEnvelope) error
-	SubscribeDeliver(ctx context.Context) (<-chan envelope.TransportEnvelope, error)
+	SubscribeDeliver(ctx context.Context) (<-chan *Delivery, error)
 	SubscribeBroadcast(ctx context.Context) (<-chan envelope.TransportEnvelope, error)
 	Drain(ctx context.Context) error
 	Close() error

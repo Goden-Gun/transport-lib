@@ -26,7 +26,7 @@ var (
 type client struct {
 	opts Options
 
-	deliverCh   chan envelope.TransportEnvelope
+	deliverCh   chan *Delivery
 	broadcastCh chan envelope.TransportEnvelope
 
 	conn      *grpc.ClientConn
@@ -71,7 +71,7 @@ func NewClient(opts Options) (Client, error) {
 	}
 	c := &client{
 		opts:        opts,
-		deliverCh:   make(chan envelope.TransportEnvelope, opts.DeliverBuffer),
+		deliverCh:   make(chan *Delivery, opts.DeliverBuffer),
 		broadcastCh: make(chan envelope.TransportEnvelope, opts.BroadcastBuffer),
 	}
 	if opts.EnableBackpressure && opts.MaxInFlightDeliver > 0 {
@@ -204,7 +204,22 @@ func (c *client) consume(ctx context.Context) {
 		switch payload := payload.(type) {
 		case *bridgepb.StreamResponse_Deliver:
 			if payload.Deliver != nil && payload.Deliver.Envelope != nil {
-				c.deliverCh <- *payload.Deliver.Envelope
+				env := payload.Deliver.Envelope
+				messageID := ""
+				if env.GetMessage() != nil {
+					messageID = env.GetMessage().GetRequestId()
+				}
+				delivery := newDelivery(env, func(ctx context.Context) error {
+					if messageID == "" {
+						return nil
+					}
+					return c.sendAck(ctx, messageID)
+				})
+				select {
+				case c.deliverCh <- delivery:
+				case <-ctx.Done():
+					return
+				}
 			}
 		case *bridgepb.StreamResponse_Broadcast:
 			if payload.Broadcast != nil && payload.Broadcast.Envelope != nil {
@@ -239,7 +254,7 @@ func (c *client) PublishIngress(ctx context.Context, env envelope.TransportEnvel
 	return nil
 }
 
-func (c *client) SubscribeDeliver(context.Context) (<-chan envelope.TransportEnvelope, error) {
+func (c *client) SubscribeDeliver(context.Context) (<-chan *Delivery, error) {
 	return c.deliverCh, nil
 }
 
@@ -325,6 +340,31 @@ func (c *client) sendHeartbeat(ctx context.Context) {
 	c.sendMu.Lock()
 	_ = c.stream.Send(req)
 	c.sendMu.Unlock()
+}
+
+func (c *client) sendAck(ctx context.Context, messageID string) error {
+	if messageID == "" {
+		return nil
+	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+	req := &bridgepb.StreamRequest{
+		Payload: &bridgepb.StreamRequest_Ack{
+			Ack: &bridgepb.AckFrame{MessageId: messageID},
+		},
+	}
+	c.sendMu.Lock()
+	defer c.sendMu.Unlock()
+	if c.stream == nil {
+		return errors.New("stream not ready")
+	}
+	return c.stream.Send(req)
 }
 
 func (c *client) acquireSlot(ctx context.Context) error {
