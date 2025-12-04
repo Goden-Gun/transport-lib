@@ -54,11 +54,15 @@ message TransportEnvelope {
   google.protobuf.Timestamp created_at = 7;
   repeated string target_connection_ids = 8;
   repeated int64 target_user_ids = 9;
+  string namespace = 10;
+  string envelope_version = 11;
 }
 
 message RegisterFrame {
   string node_id = 1;
   string namespace = 2;
+  repeated string supported_versions = 3;
+  string bridge_version = 4;
 }
 
 message IngressFrame {

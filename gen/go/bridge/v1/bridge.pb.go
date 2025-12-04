@@ -390,6 +390,8 @@ type TransportEnvelope struct {
 	CreatedAt           *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	TargetConnectionIds []string               `protobuf:"bytes,8,rep,name=target_connection_ids,json=targetConnectionIds,proto3" json:"target_connection_ids,omitempty"`
 	TargetUserIds       []int64                `protobuf:"varint,9,rep,packed,name=target_user_ids,json=targetUserIds,proto3" json:"target_user_ids,omitempty"`
+	Namespace           string                 `protobuf:"bytes,10,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	EnvelopeVersion     string                 `protobuf:"bytes,11,opt,name=envelope_version,json=envelopeVersion,proto3" json:"envelope_version,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -487,12 +489,28 @@ func (x *TransportEnvelope) GetTargetUserIds() []int64 {
 	return nil
 }
 
+func (x *TransportEnvelope) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *TransportEnvelope) GetEnvelopeVersion() string {
+	if x != nil {
+		return x.EnvelopeVersion
+	}
+	return ""
+}
+
 type RegisterFrame struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	NodeId        string                 `protobuf:"bytes,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
-	Namespace     string                 `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	NodeId            string                 `protobuf:"bytes,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	Namespace         string                 `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	SupportedVersions []string               `protobuf:"bytes,3,rep,name=supported_versions,json=supportedVersions,proto3" json:"supported_versions,omitempty"`
+	BridgeVersion     string                 `protobuf:"bytes,4,opt,name=bridge_version,json=bridgeVersion,proto3" json:"bridge_version,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *RegisterFrame) Reset() {
@@ -535,6 +553,20 @@ func (x *RegisterFrame) GetNodeId() string {
 func (x *RegisterFrame) GetNamespace() string {
 	if x != nil {
 		return x.Namespace
+	}
+	return ""
+}
+
+func (x *RegisterFrame) GetSupportedVersions() []string {
+	if x != nil {
+		return x.SupportedVersions
+	}
+	return nil
+}
+
+func (x *RegisterFrame) GetBridgeVersion() string {
+	if x != nil {
+		return x.BridgeVersion
 	}
 	return ""
 }
@@ -1005,7 +1037,7 @@ const file_bridge_v1_bridge_proto_rawDesc = "" +
 	"\x05error\x18\b \x01(\v2\x17.bridge.v1.ErrorPayloadR\x05error\x128\n" +
 	"\ttimestamp\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12/\n" +
 	"\x06extras\x18\n" +
-	" \x01(\v2\x17.google.protobuf.StructR\x06extras\"\xd7\x03\n" +
+	" \x01(\v2\x17.google.protobuf.StructR\x06extras\"\xa0\x04\n" +
 	"\x11TransportEnvelope\x12#\n" +
 	"\rconnection_id\x18\x01 \x01(\tR\fconnectionId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x17\n" +
@@ -1018,13 +1050,18 @@ const file_bridge_v1_bridge_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x122\n" +
 	"\x15target_connection_ids\x18\b \x03(\tR\x13targetConnectionIds\x12&\n" +
-	"\x0ftarget_user_ids\x18\t \x03(\x03R\rtargetUserIds\x1a=\n" +
+	"\x0ftarget_user_ids\x18\t \x03(\x03R\rtargetUserIds\x12\x1c\n" +
+	"\tnamespace\x18\n" +
+	" \x01(\tR\tnamespace\x12)\n" +
+	"\x10envelope_version\x18\v \x01(\tR\x0fenvelopeVersion\x1a=\n" +
 	"\x0fAttributesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"F\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x9c\x01\n" +
 	"\rRegisterFrame\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\tR\x06nodeId\x12\x1c\n" +
-	"\tnamespace\x18\x02 \x01(\tR\tnamespace\"H\n" +
+	"\tnamespace\x18\x02 \x01(\tR\tnamespace\x12-\n" +
+	"\x12supported_versions\x18\x03 \x03(\tR\x11supportedVersions\x12%\n" +
+	"\x0ebridge_version\x18\x04 \x01(\tR\rbridgeVersion\"H\n" +
 	"\fIngressFrame\x128\n" +
 	"\benvelope\x18\x01 \x01(\v2\x1c.bridge.v1.TransportEnvelopeR\benvelope\"H\n" +
 	"\fDeliverFrame\x128\n" +

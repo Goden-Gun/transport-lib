@@ -228,3 +228,17 @@ func main() {
 - 统一错误码系统（numeric + string）
 - 支持文本和音频载荷
 - 支持双向流通信
+
+## Packages
+- `pkg/envelope`: Shared message/envelope structs plus helpers.
+- `pkg/codes`: Unified error codes.
+- `pkg/bridge`: Interfaces for gRPC stream helpers (client/server, flow control hooks).
+- `pkg/tracing`: OpenTelemetry helpers for TraceID 注入/提取。
+- `schema/`: JSON Schema 与示例（待补充）。
+- `examples/`: Sidecar 与 Chat Worker 接入样例（待补充）。
+
+WebSocket Payloads 由 proto/bridge/v1/bridge.proto 定义，并通过 pkg/envelope 提供 Go helper。
+
+## Bridge Helpers
+- 使用 `pkg/bridge.NewClient` 连接 Sidecar ↔ Chat Worker，支持心跳、简单 backpressure、Graceful Shutdown。
+- 使用 `pkg/bridge.NewServer` 快速将 Handler 接入 gRPC Stream（提供 Session 接口可发送 Deliver/Broadcast）。
