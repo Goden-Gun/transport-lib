@@ -9,11 +9,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	bridgepb "github.com/Goden-Gun/transport-lib/gen/go/bridge/v1"
-	"github.com/Goden-Gun/transport-lib/pkg/envelope"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
+
+	bridgepb "github.com/Goden-Gun/transport-lib/gen/go/bridge/v1"
+	"github.com/Goden-Gun/transport-lib/pkg/envelope"
 )
 
 var (
@@ -161,7 +163,12 @@ func (c *client) connect(ctx context.Context) error {
 	}
 	c.conn = conn
 	client := bridgepb.NewSidecarBridgeClient(conn)
-	stream, streamErr := client.Stream(ctx)
+	streamCtx := dctx
+	if len(c.opts.Metadata) > 0 {
+		md := metadata.New(c.opts.Metadata)
+		streamCtx = metadata.NewOutgoingContext(dctx, md)
+	}
+	stream, streamErr := client.Stream(streamCtx)
 	if streamErr != nil {
 		return fmt.Errorf("create stream: %w", streamErr)
 	}
