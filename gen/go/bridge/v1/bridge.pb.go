@@ -392,6 +392,8 @@ type TransportEnvelope struct {
 	TargetUserIds       []int64                `protobuf:"varint,9,rep,packed,name=target_user_ids,json=targetUserIds,proto3" json:"target_user_ids,omitempty"`
 	Namespace           string                 `protobuf:"bytes,10,opt,name=namespace,proto3" json:"namespace,omitempty"`
 	EnvelopeVersion     string                 `protobuf:"bytes,11,opt,name=envelope_version,json=envelopeVersion,proto3" json:"envelope_version,omitempty"`
+	SlotId              uint32                 `protobuf:"varint,12,opt,name=slot_id,json=slotId,proto3" json:"slot_id,omitempty"`
+	SlotGeneration      uint32                 `protobuf:"varint,13,opt,name=slot_generation,json=slotGeneration,proto3" json:"slot_generation,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -501,6 +503,20 @@ func (x *TransportEnvelope) GetEnvelopeVersion() string {
 		return x.EnvelopeVersion
 	}
 	return ""
+}
+
+func (x *TransportEnvelope) GetSlotId() uint32 {
+	if x != nil {
+		return x.SlotId
+	}
+	return 0
+}
+
+func (x *TransportEnvelope) GetSlotGeneration() uint32 {
+	if x != nil {
+		return x.SlotGeneration
+	}
+	return 0
 }
 
 type RegisterFrame struct {
@@ -1053,7 +1069,7 @@ const file_bridge_v1_bridge_proto_rawDesc = "" +
 	"\x05error\x18\b \x01(\v2\x17.bridge.v1.ErrorPayloadR\x05error\x128\n" +
 	"\ttimestamp\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12/\n" +
 	"\x06extras\x18\n" +
-	" \x01(\v2\x17.google.protobuf.StructR\x06extras\"\xa0\x04\n" +
+	" \x01(\v2\x17.google.protobuf.StructR\x06extras\"\xe2\x04\n" +
 	"\x11TransportEnvelope\x12#\n" +
 	"\rconnection_id\x18\x01 \x01(\tR\fconnectionId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x17\n" +
@@ -1069,7 +1085,9 @@ const file_bridge_v1_bridge_proto_rawDesc = "" +
 	"\x0ftarget_user_ids\x18\t \x03(\x03R\rtargetUserIds\x12\x1c\n" +
 	"\tnamespace\x18\n" +
 	" \x01(\tR\tnamespace\x12)\n" +
-	"\x10envelope_version\x18\v \x01(\tR\x0fenvelopeVersion\x1a=\n" +
+	"\x10envelope_version\x18\v \x01(\tR\x0fenvelopeVersion\x12\x17\n" +
+	"\aslot_id\x18\f \x01(\rR\x06slotId\x12'\n" +
+	"\x0fslot_generation\x18\r \x01(\rR\x0eslotGeneration\x1a=\n" +
 	"\x0fAttributesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x9c\x01\n" +

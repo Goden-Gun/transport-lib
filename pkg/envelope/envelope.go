@@ -90,3 +90,20 @@ func StampTrace(env *bridgepb.TransportEnvelope, traceID string) {
 	}
 	env.Attributes["trace_id"] = traceID
 }
+
+// SetSlot fills slot metadata on the envelope before sending.
+func SetSlot(env *bridgepb.TransportEnvelope, slotID, generation uint32) {
+	if env == nil {
+		return
+	}
+	env.SlotId = slotID
+	env.SlotGeneration = generation
+}
+
+// GetSlot returns the slot metadata stored on the envelope.
+func GetSlot(env *bridgepb.TransportEnvelope) (slotID, generation uint32) {
+	if env == nil {
+		return 0, 0
+	}
+	return env.GetSlotId(), env.GetSlotGeneration()
+}

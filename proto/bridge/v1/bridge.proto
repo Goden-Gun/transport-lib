@@ -56,6 +56,8 @@ message TransportEnvelope {
   repeated int64 target_user_ids = 9;
   string namespace = 10;
   string envelope_version = 11;
+  uint32 slot_id = 12;
+  uint32 slot_generation = 13;
 }
 
 message RegisterFrame {
