@@ -96,3 +96,42 @@ func (b *RedisAccessBlocklist) IsBlocked(ctx context.Context, jti string) (bool,
 func (b *RedisAccessBlocklist) key(jti string) string {
 	return b.prefix + jti
 }
+
+// SessionVersionStore keeps track of latest session version per user.
+type SessionVersionStore interface {
+	Get(ctx context.Context, userID int64) (int64, error)
+	Incr(ctx context.Context, userID int64) (int64, error)
+}
+
+type RedisSessionVersionStore struct {
+	client redis.Cmdable
+	prefix string
+}
+
+func NewRedisSessionVersionStore(client redis.Cmdable, prefix string) *RedisSessionVersionStore {
+	if client == nil {
+		return nil
+	}
+	if prefix == "" {
+		prefix = DefaultSessionVersionPrefix
+	}
+	return &RedisSessionVersionStore{client: client, prefix: prefix}
+}
+
+func (s *RedisSessionVersionStore) Get(ctx context.Context, userID int64) (int64, error) {
+	if s == nil {
+		return 0, fmt.Errorf("session version store not configured")
+	}
+	return s.client.Get(ctx, s.key(userID)).Int64()
+}
+
+func (s *RedisSessionVersionStore) Incr(ctx context.Context, userID int64) (int64, error) {
+	if s == nil {
+		return 0, fmt.Errorf("session version store not configured")
+	}
+	return s.client.Incr(ctx, s.key(userID)).Result()
+}
+
+func (s *RedisSessionVersionStore) key(userID int64) string {
+	return fmt.Sprintf("%s%d", s.prefix, userID)
+}

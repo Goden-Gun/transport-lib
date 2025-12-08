@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -14,6 +15,8 @@ import (
 type AccessClaims struct {
 	UserID    int64  `json:"user_id"`
 	Sequence  string `json:"sequence"`
+	// SessionVersion is a monotonic number; tokens with lower versions are invalid once a higher version is issued.
+	SessionVersion int64 `json:"session_version,omitempty"`
 	TokenType string `json:"type"`
 	jwt.RegisteredClaims
 }
@@ -57,7 +60,13 @@ type AccessTokenBlocklist interface {
 }
 
 // GenerateTokenPair issues access + refresh tokens and stores refresh JTI if store provided.
+// Deprecated: prefer GenerateTokenPairWithVersion to include session versioning.
 func GenerateTokenPair(ctx context.Context, userID int64, sequence string, cfg Config, store RefreshTokenStore) (*TokenPair, error) {
+	return GenerateTokenPairWithVersion(ctx, userID, sequence, 0, cfg, store)
+}
+
+// GenerateTokenPairWithVersion issues tokens with explicit sessionVersion.
+func GenerateTokenPairWithVersion(ctx context.Context, userID int64, sequence string, sessionVersion int64, cfg Config, store RefreshTokenStore) (*TokenPair, error) {
 	cfg.Defaults()
 	if cfg.Secret == "" {
 		return nil, errors.New("jwt secret is empty")
@@ -67,9 +76,10 @@ func GenerateTokenPair(ctx context.Context, userID int64, sequence string, cfg C
 	refreshJTI := uuid.NewString()
 
 	accessClaims := AccessClaims{
-		UserID:    userID,
-		Sequence:  sequence,
-		TokenType: "access",
+		UserID:          userID,
+		Sequence:        sequence,
+		SessionVersion:  sessionVersion,
+		TokenType:       "access",
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   stringFromInt64(userID),
 			ID:        accessJTI,
@@ -143,6 +153,24 @@ func VerifyAccessToken(tokenStr string, cfg Config, blocklist AccessTokenBlockli
 		}
 		if blocked {
 			return nil, errors.New("token revoked")
+		}
+	}
+	return claims, nil
+}
+
+// VerifyAccessTokenWithVersion additionally enforces session version equality when store is provided.
+func VerifyAccessTokenWithVersion(tokenStr string, cfg Config, blocklist AccessTokenBlocklist, versionStore SessionVersionStore) (*AccessClaims, error) {
+	claims, err := VerifyAccessToken(tokenStr, cfg, blocklist)
+	if err != nil {
+		return nil, err
+	}
+	if versionStore != nil {
+		current, err := versionStore.Get(context.Background(), claims.UserID)
+		if err != nil && !strings.Contains(err.Error(), "nil") { // tolerate missing key as version 0
+			return nil, err
+		}
+		if current > 0 && claims.SessionVersion != current {
+			return nil, errors.New("access token superseded")
 		}
 	}
 	return claims, nil

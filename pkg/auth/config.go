@@ -7,6 +7,8 @@ const (
 	DefaultAccessBlocklistPrefix = "auth:access:block:"
 	// DefaultRefreshStorePrefix is the Redis key prefix for refresh token JTIs.
 	DefaultRefreshStorePrefix = "auth:refresh:"
+	// DefaultSessionVersionPrefix stores per-user session versions.
+	DefaultSessionVersionPrefix = "auth:session:ver:"
 )
 
 // Config controls JWT signing and validation.
