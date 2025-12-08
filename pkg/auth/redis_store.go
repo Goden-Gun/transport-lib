@@ -20,7 +20,7 @@ func NewRedisRefreshStore(client redis.Cmdable, prefix string) *RedisRefreshStor
 		return nil
 	}
 	if prefix == "" {
-		prefix = "auth:refresh:"
+		prefix = DefaultRefreshStorePrefix
 	}
 	return &RedisRefreshStore{client: client, prefix: prefix}
 }
@@ -70,7 +70,7 @@ func NewRedisAccessBlocklist(client redis.Cmdable, prefix string) *RedisAccessBl
 		return nil
 	}
 	if prefix == "" {
-		prefix = "auth:access:block:"
+		prefix = DefaultAccessBlocklistPrefix
 	}
 	return &RedisAccessBlocklist{client: client, prefix: prefix}
 }

@@ -2,6 +2,13 @@ package auth
 
 import "time"
 
+const (
+	// DefaultAccessBlocklistPrefix is the Redis key prefix for revoked access JTIs.
+	DefaultAccessBlocklistPrefix = "auth:access:block:"
+	// DefaultRefreshStorePrefix is the Redis key prefix for refresh token JTIs.
+	DefaultRefreshStorePrefix = "auth:refresh:"
+)
+
 // Config controls JWT signing and validation.
 // Secret: shared HS key; Alg currently supports HS256.
 // Blocklist/Refresh prefixes are used by Redis implementations.
@@ -30,9 +37,9 @@ func (c *Config) Defaults() {
 		c.ClockSkew = 0
 	}
 	if c.BlocklistPrefix == "" {
-		c.BlocklistPrefix = "auth:access:block:"
+		c.BlocklistPrefix = DefaultAccessBlocklistPrefix
 	}
 	if c.RefreshStorePrefix == "" {
-		c.RefreshStorePrefix = "auth:refresh:"
+		c.RefreshStorePrefix = DefaultRefreshStorePrefix
 	}
 }
