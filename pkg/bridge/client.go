@@ -163,7 +163,7 @@ func (c *client) connect(ctx context.Context) error {
 	}
 	c.conn = conn
 	client := bridgepb.NewSidecarBridgeClient(conn)
-	streamCtx := dctx
+	streamCtx := ctx
 	if len(c.opts.Metadata) > 0 {
 		md := metadata.New(c.opts.Metadata)
 		streamCtx = metadata.NewOutgoingContext(dctx, md)
