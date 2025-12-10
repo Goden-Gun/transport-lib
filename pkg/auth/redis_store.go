@@ -135,3 +135,71 @@ func (s *RedisSessionVersionStore) Incr(ctx context.Context, userID int64) (int6
 func (s *RedisSessionVersionStore) key(userID int64) string {
 	return fmt.Sprintf("%s%d", s.prefix, userID)
 }
+
+// RedisTokenVersionStore implements TokenVersionStore using Redis.
+// Each user has only ONE key, minimizing Redis storage.
+type RedisTokenVersionStore struct {
+	client redis.Cmdable
+	prefix string
+	ttl    time.Duration // optional TTL for version keys
+}
+
+// RedisTokenVersionStoreOption configures RedisTokenVersionStore
+type RedisTokenVersionStoreOption func(*RedisTokenVersionStore)
+
+// WithTokenVersionTTL sets TTL for version keys (cleanup inactive users)
+func WithTokenVersionTTL(ttl time.Duration) RedisTokenVersionStoreOption {
+	return func(s *RedisTokenVersionStore) {
+		s.ttl = ttl
+	}
+}
+
+// NewRedisTokenVersionStore creates a new TokenVersionStore backed by Redis.
+func NewRedisTokenVersionStore(client redis.Cmdable, opts ...RedisTokenVersionStoreOption) *RedisTokenVersionStore {
+	if client == nil {
+		return nil
+	}
+	s := &RedisTokenVersionStore{
+		client: client,
+		prefix: DefaultTokenVersionPrefix,
+	}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
+}
+
+// IncrVersion increments the token version for a user (called on login).
+// This automatically invalidates all previous tokens for this user.
+func (s *RedisTokenVersionStore) IncrVersion(ctx context.Context, userID int64) (int64, error) {
+	if s == nil {
+		return 0, fmt.Errorf("token version store not configured")
+	}
+	key := s.key(userID)
+	ver, err := s.client.Incr(ctx, key).Result()
+	if err != nil {
+		return 0, err
+	}
+	// Set TTL if configured (refreshes on each login)
+	if s.ttl > 0 {
+		s.client.Expire(ctx, key, s.ttl)
+	}
+	return ver, nil
+}
+
+// GetVersion returns the current token version for a user.
+// Returns 0 if the user has never logged in.
+func (s *RedisTokenVersionStore) GetVersion(ctx context.Context, userID int64) (int64, error) {
+	if s == nil {
+		return 0, fmt.Errorf("token version store not configured")
+	}
+	ver, err := s.client.Get(ctx, s.key(userID)).Int64()
+	if err == redis.Nil {
+		return 0, nil // user never logged in, version is 0
+	}
+	return ver, err
+}
+
+func (s *RedisTokenVersionStore) key(userID int64) string {
+	return fmt.Sprintf("%s%d", s.prefix, userID)
+}

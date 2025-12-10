@@ -9,6 +9,9 @@ const (
 	DefaultRefreshStorePrefix = "auth:refresh:"
 	// DefaultSessionVersionPrefix stores per-user session versions.
 	DefaultSessionVersionPrefix = "auth:session:ver:"
+	// DefaultTokenVersionPrefix is the Redis key prefix for simple token versioning.
+	// Each user has only ONE key: auth:token:ver:{user_id}
+	DefaultTokenVersionPrefix = "auth:token:ver:"
 )
 
 // Config controls JWT signing and validation.
