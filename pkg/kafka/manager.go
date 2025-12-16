@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 	"time"
-
+	
 	"github.com/IBM/sarama"
 	"github.com/xdg-go/scram"
 	"go.opentelemetry.io/otel"
@@ -18,7 +18,6 @@ import (
 // It is intentionally infrastructure-only: topics and consumer groups can be
 // decided by each service.
 type Config struct {
-	Enabled       bool     `yaml:"enabled" mapstructure:"enabled"`
 	Brokers       []string `yaml:"brokers" mapstructure:"brokers"`
 	Topic         string   `yaml:"topic" mapstructure:"topic"`
 	ClientID      string   `yaml:"client_id" mapstructure:"client_id"`
@@ -26,7 +25,7 @@ type Config struct {
 	Password      string   `yaml:"password" mapstructure:"password"`
 	SASLMechanism string   `yaml:"sasl_mechanism" mapstructure:"sasl_mechanism"`
 	TLSEnabled    bool     `yaml:"tls_enabled" mapstructure:"tls_enabled"`
-
+	
 	// RequiredAcks supports: "none" | "one" | "all" (default: all).
 	RequiredAcks string `yaml:"required_acks" mapstructure:"required_acks"`
 	// MaxAttempts controls producer retry max attempts (default: 3).
@@ -54,11 +53,11 @@ type Manager struct {
 	cfg      Config
 	producer sarama.SyncProducer
 	baseConf *sarama.Config
-
+	
 	observerMu      sync.RWMutex
 	publishObserver PublishObserver
 	consumeObserver ConsumeObserver
-
+	
 	closeOnce sync.Once
 }
 
@@ -91,30 +90,26 @@ func (c *kafkaHeadersCarrier) Keys() []string {
 
 // NewManager builds a Kafka manager using the provided config.
 func NewManager(cfg Config) (*Manager, error) {
-	if !cfg.Enabled {
-		return nil, errors.New("kafka disabled")
-	}
-
+	
 	if len(cfg.Brokers) == 0 {
 		return nil, errors.New("kafka brokers empty")
 	}
-
 	base := sarama.NewConfig()
 	base.Version = sarama.V2_1_0_0
 	if cfg.ClientID != "" {
 		base.ClientID = cfg.ClientID
 	}
-
+	
 	base.Producer.Return.Successes = true
 	base.Producer.Retry.Max = max(cfg.MaxAttempts, 3)
 	base.Producer.RequiredAcks = parseRequiredAcks(cfg.RequiredAcks)
 	base.Producer.Idempotent = false
-
+	
 	if cfg.TLSEnabled {
 		base.Net.TLS.Enable = true
 		base.Net.TLS.Config = &tls.Config{MinVersion: tls.VersionTLS12}
 	}
-
+	
 	if cfg.Username != "" {
 		base.Net.SASL.Enable = true
 		base.Net.SASL.User = cfg.Username
@@ -137,7 +132,7 @@ func NewManager(cfg Config) (*Manager, error) {
 			base.Net.SASL.Mechanism = sarama.SASLTypePlaintext
 		}
 	}
-
+	
 	producer, err := sarama.NewSyncProducer(cfg.Brokers, base)
 	if err != nil {
 		return nil, err
@@ -205,11 +200,11 @@ func (m *Manager) Publish(ctx context.Context, topic string, key, value []byte) 
 	if topic == "" {
 		return errors.New("kafka topic empty")
 	}
-
+	
 	var headers kafkaHeadersCarrier
 	propagator := otel.GetTextMapPropagator()
 	propagator.Inject(ctx, &headers)
-
+	
 	msg := &sarama.ProducerMessage{Topic: topic}
 	if len(key) > 0 {
 		msg.Key = sarama.ByteEncoder(key)
@@ -220,7 +215,7 @@ func (m *Manager) Publish(ctx context.Context, topic string, key, value []byte) 
 	for _, h := range headers {
 		msg.Headers = append(msg.Headers, h)
 	}
-
+	
 	select {
 	case <-ctx.Done():
 		err = ctx.Err()
