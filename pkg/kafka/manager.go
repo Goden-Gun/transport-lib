@@ -48,6 +48,18 @@ type ConsumeObserver interface {
 	ObserveConsume(topic, group, eventType string, duration time.Duration, err error)
 }
 
+// ConsumerGroupOptions customizes consumer group behaviour when creating a new group.
+type ConsumerGroupOptions struct {
+	// InitialOffset controls where to start when there is no stored offset.
+	// Valid values are sarama.OffsetNewest (-1) and sarama.OffsetOldest (-2).
+	// Default: sarama.OffsetNewest.
+	InitialOffset int64
+
+	// GroupStrategies overrides the rebalance strategies.
+	// Default: sarama's defaults.
+	GroupStrategies []sarama.BalanceStrategy
+}
+
 // Manager manages a shared Kafka sync producer and a base sarama config for consumers.
 type Manager struct {
 	cfg      Config
@@ -242,9 +254,27 @@ func (m *Manager) NewConsumerGroup(group string) (sarama.ConsumerGroup, error) {
 	if group == "" {
 		return nil, errors.New("kafka consumer group empty")
 	}
+	return m.NewConsumerGroupWithOptions(group, ConsumerGroupOptions{})
+}
+
+// NewConsumerGroupWithOptions returns a consumer group using the shared base config and the provided options.
+func (m *Manager) NewConsumerGroupWithOptions(group string, opts ConsumerGroupOptions) (sarama.ConsumerGroup, error) {
+	if m == nil {
+		return nil, errors.New("kafka manager nil")
+	}
+	if group == "" {
+		return nil, errors.New("kafka consumer group empty")
+	}
 	cfg := *m.baseConf
 	cfg.Consumer.Return.Errors = true
-	cfg.Consumer.Offsets.Initial = sarama.OffsetNewest
+	if opts.InitialOffset == 0 {
+		cfg.Consumer.Offsets.Initial = sarama.OffsetNewest
+	} else {
+		cfg.Consumer.Offsets.Initial = opts.InitialOffset
+	}
+	if opts.GroupStrategies != nil {
+		cfg.Consumer.Group.Rebalance.GroupStrategies = opts.GroupStrategies
+	}
 	return sarama.NewConsumerGroup(m.cfg.Brokers, group, &cfg)
 }
 
