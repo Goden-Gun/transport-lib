@@ -3,82 +3,169 @@
   "title": "TransportEnvelope",
   "type": "object",
   "properties": {
-    "connection_id": {"type": "string"},
-    "user_id": {"type": "integer"},
-    "node_id": {"type": "string"},
-    "namespace": {"type": "string"},
-    "trace_id": {"type": "string"},
-    "envelope_version": {"type": "string"},
-    "created_at": {"type": "string", "format": "date-time"},
+    "connection_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "integer"
+    },
+    "node_id": {
+      "type": "string"
+    },
+    "namespace": {
+      "type": "string"
+    },
+    "trace_id": {
+      "type": "string"
+    },
+    "envelope_version": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
     "target_connection_ids": {
       "type": "array",
-      "items": {"type": "string"}
+      "items": {
+        "type": "string"
+      }
     },
     "target_user_ids": {
       "type": "array",
-      "items": {"type": "integer"}
+      "items": {
+        "type": "integer"
+      }
     },
     "message": {
       "$ref": "#/definitions/message"
     }
   },
-  "required": ["connection_id", "node_id", "message", "envelope_version"],
+  "required": [
+    "connection_id",
+    "node_id",
+    "message",
+    "envelope_version"
+  ],
   "additionalProperties": false,
   "definitions": {
     "message": {
       "type": "object",
       "properties": {
-        "version": {"type": "string"},
-        "kind": {"type": "string", "enum": ["request", "event", "response", "system"]},
-        "action": {"type": "string"},
-        "request_id": {"type": "string"},
-        "conversation_id": {"type": "string"},
-        "payload": {"$ref": "#/definitions/payload"},
-        "metadata": {"type": "object"},
-        "timestamp": {"type": "string", "format": "date-time"},
-        "error": {"$ref": "#/definitions/error"},
-        "extras": {"type": "object"}
+        "version": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "request",
+            "event",
+            "response",
+            "system"
+          ]
+        },
+        "action": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "conversation_id": {
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/definitions/payload"
+        },
+        "metadata": {
+          "type": "object"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "error": {
+          "$ref": "#/definitions/error"
+        },
+        "extras": {
+          "type": "object"
+        }
       },
-      "required": ["version", "action", "request_id"],
+      "required": [
+        "version",
+        "action",
+        "request_id"
+      ],
       "additionalProperties": true
     },
     "payload": {
       "type": "object",
       "properties": {
-        "text": {"$ref": "#/definitions/text_payload"},
-        "audio": {"$ref": "#/definitions/audio_payload"}
+        "text": {
+          "$ref": "#/definitions/text_payload"
+        },
+        "audio": {
+          "$ref": "#/definitions/audio_payload"
+        }
       },
       "additionalProperties": false
     },
     "text_payload": {
       "type": "object",
       "properties": {
-        "content": {"type": "string"},
-        "mime_type": {"type": "string"}
+        "content": {
+          "type": "string"
+        },
+        "mime_type": {
+          "type": "string"
+        }
       },
-      "required": ["content"],
+      "required": [
+        "content"
+      ],
       "additionalProperties": false
     },
     "audio_payload": {
       "type": "object",
       "properties": {
-        "codec": {"type": "string"},
-        "seq": {"type": "integer"},
-        "data": {"type": "string"},
-        "is_last": {"type": "boolean"}
+        "codec": {
+          "type": "string"
+        },
+        "seq": {
+          "type": "integer"
+        },
+        "data": {
+          "type": "string"
+        },
+        "is_last": {
+          "type": "boolean"
+        }
       },
-      "required": ["codec", "seq", "data"],
+      "required": [
+        "codec",
+        "seq",
+        "data"
+      ],
       "additionalProperties": false
     },
     "error": {
       "type": "object",
       "properties": {
-        "code": {"type": "integer"},
-        "error_code": {"type": "string"},
-        "message": {"type": "string"},
-        "details": {"type": "string"}
+        "code": {
+          "type": "integer"
+        },
+        "error_code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "string"
+        }
       },
-      "required": ["message"],
+      "required": [
+        "message"
+      ],
       "additionalProperties": false
     }
   }

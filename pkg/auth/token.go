@@ -13,11 +13,11 @@ import (
 
 // AccessClaims represents access token claims.
 type AccessClaims struct {
-	UserID    int64  `json:"user_id"`
-	Sequence  string `json:"sequence"`
+	UserID   int64  `json:"user_id"`
+	Sequence string `json:"sequence"`
 	// SessionVersion is a monotonic number; tokens with lower versions are invalid once a higher version is issued.
-	SessionVersion int64 `json:"session_version,omitempty"`
-	TokenType string `json:"type"`
+	SessionVersion int64  `json:"session_version,omitempty"`
+	TokenType      string `json:"type"`
 	jwt.RegisteredClaims
 }
 
@@ -76,10 +76,10 @@ func GenerateTokenPairWithVersion(ctx context.Context, userID int64, sequence st
 	refreshJTI := uuid.NewString()
 
 	accessClaims := AccessClaims{
-		UserID:          userID,
-		Sequence:        sequence,
-		SessionVersion:  sessionVersion,
-		TokenType:       "access",
+		UserID:         userID,
+		Sequence:       sequence,
+		SessionVersion: sessionVersion,
+		TokenType:      "access",
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   stringFromInt64(userID),
 			ID:        accessJTI,

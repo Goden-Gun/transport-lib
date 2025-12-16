@@ -8,10 +8,11 @@ import (
 	"net"
 	"sync"
 
-	bridgepb "github.com/Goden-Gun/transport-lib/gen/go/bridge/v1"
-	"github.com/Goden-Gun/transport-lib/pkg/envelope"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+
+	bridgepb "github.com/Goden-Gun/transport-lib/gen/go/bridge/v1"
+	"github.com/Goden-Gun/transport-lib/pkg/envelope"
 )
 
 // NewServer builds a gRPC server that wires stream events to Handler.

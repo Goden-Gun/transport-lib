@@ -4,10 +4,11 @@ import (
 	"errors"
 	"strings"
 
-	bridgepb "github.com/Goden-Gun/transport-lib/gen/go/bridge/v1"
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	bridgepb "github.com/Goden-Gun/transport-lib/gen/go/bridge/v1"
 )
 
 const Version = "2025-01"

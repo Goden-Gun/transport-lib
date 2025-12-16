@@ -33,6 +33,7 @@ transport-lib/
 ```
 
 该脚本会：
+
 - 检查并安装必要的工具（protoc, protoc-gen-go, protoc-gen-go-grpc）
 - 清理旧的生成文件
 - 生成新的 Go 代码
@@ -49,7 +50,7 @@ go get github.com/your-org/gga-transport-lib
 
 ```go
 import (
-    bridgepb "gga-transport-lib/gen/go/bridge/v1"
+bridgepb "gga-transport-lib/gen/go/bridge/v1"
 )
 ```
 
@@ -79,6 +80,7 @@ message ErrorPayload {
 ```
 
 错误码分类：
+
 - `40101-40199`: 认证错误
 - `40201-40299`: 权限错误
 - `40301-40399`: 授权错误
@@ -94,12 +96,14 @@ message ErrorPayload {
 #### 流帧类型
 
 **客户端 → 服务端：**
+
 - `RegisterFrame`: 注册节点
 - `IngressFrame`: 客户端消息入站
 - `AckFrame`: 确认消息
 - `HeartbeatFrame`: 心跳
 
 **服务端 → 客户端：**
+
 - `DeliverFrame`: 点对点消息投递
 - `BroadcastFrame`: 广播/组播消息
 - `HeartbeatFrame`: 心跳响应
@@ -124,12 +128,14 @@ message ErrorPayload {
 修改协议时请遵循以下原则：
 
 ✅ **允许的修改：**
+
 - 添加新的消息类型
 - 添加新的字段（使用新的字段编号）
 - 添加新的枚举值
 - 添加新的服务方法
 
 ❌ **禁止的修改：**
+
 - 删除或重命名字段
 - 修改字段编号
 - 修改字段类型
@@ -143,59 +149,59 @@ message ErrorPayload {
 package main
 
 import (
-    "context"
-    "log"
-
-    bridgepb "gga-transport-lib/gen/go/bridge/v1"
-    "google.golang.org/grpc"
+	"context"
+	"log"
+	
+	bridgepb "gga-transport-lib/gen/go/bridge/v1"
+	"google.golang.org/grpc"
 )
 
 func main() {
-    // 连接到 Bridge 服务
-    conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
-    if err != nil {
-        log.Fatalf("连接失败: %v", err)
-    }
-    defer conn.Close()
-
-    // 创建客户端
-    client := bridgepb.NewSidecarBridgeClient(conn)
-
-    // 创建双向流
-    stream, err := client.Stream(context.Background())
-    if err != nil {
-        log.Fatalf("创建流失败: %v", err)
-    }
-
-    // 发送注册消息
-    err = stream.Send(&bridgepb.StreamRequest{
-        Payload: &bridgepb.StreamRequest_Register{
-            Register: &bridgepb.RegisterFrame{
-                NodeId:    "sidecar-001",
-                Namespace: "production",
-            },
-        },
-    })
-    if err != nil {
-        log.Fatalf("发送注册消息失败: %v", err)
-    }
-
-    // 接收消息
-    for {
-        resp, err := stream.Recv()
-        if err != nil {
-            log.Fatalf("接收消息失败: %v", err)
-        }
-
-        switch payload := resp.Payload.(type) {
-        case *bridgepb.StreamResponse_Deliver:
-            log.Printf("收到投递消息: %+v", payload.Deliver)
-        case *bridgepb.StreamResponse_Broadcast:
-            log.Printf("收到广播消息: %+v", payload.Broadcast)
-        case *bridgepb.StreamResponse_Heartbeat:
-            log.Printf("收到心跳: %s", payload.Heartbeat.Nonce)
-        }
-    }
+	// 连接到 Bridge 服务
+	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("连接失败: %v", err)
+	}
+	defer conn.Close()
+	
+	// 创建客户端
+	client := bridgepb.NewSidecarBridgeClient(conn)
+	
+	// 创建双向流
+	stream, err := client.Stream(context.Background())
+	if err != nil {
+		log.Fatalf("创建流失败: %v", err)
+	}
+	
+	// 发送注册消息
+	err = stream.Send(&bridgepb.StreamRequest{
+		Payload: &bridgepb.StreamRequest_Register{
+			Register: &bridgepb.RegisterFrame{
+				NodeId:    "sidecar-001",
+				Namespace: "production",
+			},
+		},
+	})
+	if err != nil {
+		log.Fatalf("发送注册消息失败: %v", err)
+	}
+	
+	// 接收消息
+	for {
+		resp, err := stream.Recv()
+		if err != nil {
+			log.Fatalf("接收消息失败: %v", err)
+		}
+		
+		switch payload := resp.Payload.(type) {
+		case *bridgepb.StreamResponse_Deliver:
+			log.Printf("收到投递消息: %+v", payload.Deliver)
+		case *bridgepb.StreamResponse_Broadcast:
+			log.Printf("收到广播消息: %+v", payload.Broadcast)
+		case *bridgepb.StreamResponse_Heartbeat:
+			log.Printf("收到心跳: %s", payload.Heartbeat.Nonce)
+		}
+	}
 }
 ```
 
@@ -230,6 +236,7 @@ func main() {
 - 支持双向流通信
 
 ## Packages
+
 - `pkg/envelope`: Shared message/envelope structs plus helpers.
 - `pkg/codes`: Unified error codes.
 - `pkg/bridge`: Interfaces for gRPC stream helpers (client/server, flow control hooks).
@@ -240,5 +247,6 @@ func main() {
 WebSocket Payloads 由 proto/bridge/v1/bridge.proto 定义，并通过 pkg/envelope 提供 Go helper。
 
 ## Bridge Helpers
+
 - 使用 `pkg/bridge.NewClient` 连接 Sidecar ↔ Chat Worker，支持心跳、简单 backpressure、Graceful Shutdown。
 - 使用 `pkg/bridge.NewServer` 快速将 Handler 接入 gRPC Stream（提供 Session 接口可发送 Deliver/Broadcast）。

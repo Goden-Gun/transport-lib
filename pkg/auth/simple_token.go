@@ -38,10 +38,10 @@ type SimpleTokenClaims struct {
 
 // SimpleTokenResult 生成 Token 的返回结果
 type SimpleTokenResult struct {
-	Token       string    // Token 字符串
-	ExpiresAt   time.Time // 过期时间
-	ExpiresIn   int64     // 剩余秒数
-	Version     int64     // Token 版本号
+	Token     string    // Token 字符串
+	ExpiresAt time.Time // 过期时间
+	ExpiresIn int64     // 剩余秒数
+	Version   int64     // Token 版本号
 }
 
 // TokenVersionStore Token 版本存储接口
