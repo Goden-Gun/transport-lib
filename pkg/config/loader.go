@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
@@ -11,8 +12,9 @@ import (
 
 // LoadOptions 加载配置选项
 type LoadOptions struct {
-	ConfigPath string // 配置文件目录，默认 "./configs"
-	EnvPrefix  string // 环境变量前缀，用于 viper.AutomaticEnv
+	ConfigPath    string // 配置文件目录，默认 "./configs"
+	EnvPrefix     string // 环境变量前缀，用于 viper.AutomaticEnv
+	AllowNoConfig bool   // 允许没有配置文件，纯环境变量配置
 }
 
 // LoadConfig 通用配置加载函数
@@ -49,13 +51,21 @@ func LoadConfig(cfg interface{}, opts ...LoadOptions) error {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(opt.ConfigPath)
 
+	// 配置环境变量支持
 	if opt.EnvPrefix != "" {
 		viper.SetEnvPrefix(opt.EnvPrefix)
+		viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 		viper.AutomaticEnv()
 	}
 
+	// 尝试读取配置文件
 	if err := viper.ReadInConfig(); err != nil {
-		return fmt.Errorf("read config failed: %w", err)
+		var configFileNotFoundError viper.ConfigFileNotFoundError
+		if errors.As(err, &configFileNotFoundError) && opt.AllowNoConfig {
+			// 允许没有配置文件，使用纯环境变量
+		} else {
+			return fmt.Errorf("read config failed: %w", err)
+		}
 	}
 
 	if err := viper.Unmarshal(cfg); err != nil {
