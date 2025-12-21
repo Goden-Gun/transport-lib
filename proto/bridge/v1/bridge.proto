@@ -58,6 +58,7 @@ message TransportEnvelope {
   string envelope_version = 11;
   uint32 slot_id = 12;
   uint32 slot_generation = 13;
+  string nfc_sequence=14;
 }
 
 message RegisterFrame {
